@@ -1,0 +1,36 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Cabecera from '../components/Cabecera.astro';
+import SelectorTipo from '../components/SelectorTipo.astro';
+import NotaLegal from '../components/NotaLegal.astro';
+import FormArrendador from '../components/FormArrendador.astro';
+import FormArrendatario from '../components/FormArrendatario.astro';
+import FormAvalista from '../components/FormAvalista.astro';
+import FormInmueble from '../components/FormInmueble.astro';
+import FormContrato from '../components/FormContrato.astro';
+import FormContacto from '../components/FormContacto.astro';
+import BotonesAccion from '../components/BotonesAccion.astro';
+import ContratoTemporada from '../components/ContratoTemporada.astro';
+import ContratoVivienda from '../components/ContratoVivienda.astro';
+import ContratoLocal from '../components/ContratoLocal.astro';
+import ContratoGrandes from '../components/ContratoGrandes.astro';
+---
+<Layout>
+  <div class="contenedor">
+    <Cabecera />
+    <div id="notificacion" class="notificacion"></div>
+    <SelectorTipo />
+    <NotaLegal />
+    <FormArrendador />
+    <FormArrendatario />
+    <FormAvalista />
+    <FormInmueble />
+    <FormContrato />
+    <FormContacto />
+    <BotonesAccion />
+  </div>
+  <ContratoTemporada />
+  <ContratoVivienda />
+  <ContratoLocal />
+  <ContratoGrandes />
+</Layout>

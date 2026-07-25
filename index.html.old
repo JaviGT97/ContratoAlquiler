@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Editor de Contratos de Alquiler</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --primary: #1a3a5c; --primary-light: #2a5a8c; --accent: #0ea5e9; --accent-dark: #0284c7;
+  --success: #10b981; --success-dark: #059669; --warning: #f59e0b; --bg: #f1f5f9;
+  --card: #ffffff; --text: #0f172a; --text-secondary: #475569; --text-muted: #94a3b8;
+  --border: #e2e8f0; --border-focus: #0ea5e9; --radius: 12px; --radius-sm: 8px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-lg: 0 4px 24px rgba(0,0,0,0.1);
+  --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-serif: 'Times New Roman', Georgia, serif;
+}
+body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; padding: 24px; line-height: 1.6; }
+.contenedor { max-width: 860px; margin: 0 auto; }
+.cabecera { text-align: center; padding: 32px 24px; margin-bottom: 28px; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); border-radius: var(--radius); color: white; box-shadow: var(--shadow-lg); }
+.cabecera h1 { font-size: 1.65rem; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 6px; }
+.cabecera p { font-size: 0.95rem; opacity: 0.85; }
+.selector-tipo { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+.tipo-card { background: var(--card); border: 2px solid var(--border); border-radius: var(--radius); padding: 16px 20px 16px 44px; cursor: pointer; transition: all 0.25s; text-align: left; position: relative; }
+.tipo-card:hover:not(.activo) { border-color: var(--accent); box-shadow: var(--shadow-lg); }
+.tipo-card.activo { border-color: var(--accent); background: linear-gradient(135deg, #f0f9ff 0%, #fff 100%); box-shadow: 0 0 0 2px rgba(14,165,233,0.15); }
+.tipo-card.activo::before { content: ''; position: absolute; left: 0; top: 4px; bottom: 4px; width: 4px; background: var(--accent); border-radius: 0 4px 4px 0; }
+.tipo-card .radio-dot { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--text-muted); transition: all 0.25s; display: flex; align-items: center; justify-content: center; }
+.tipo-card.activo .radio-dot { border-color: var(--accent); background: var(--accent); }
+.tipo-card.activo .radio-dot::after { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #fff; }
+.tipo-card h3 { font-size: 0.95rem; font-weight: 600; color: var(--primary); margin-bottom: 2px; }
+.tipo-card.activo h3 { color: var(--primary); }
+.tipo-card p { font-size: 0.78rem; color: var(--text-secondary); }
+.tipo-card .tag { display: inline-block; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px 8px; border-radius: 4px; margin-top: 4px; }
+.tipo-card .tag.disponible { background: #d1fae5; color: #065f46; }
+.tipo-card.activo .tag.disponible { background: #d1fae5; color: #065f46; }
+.nota-legal { background: #fffbeb; border: 1px solid #fde68a; border-left: 4px solid var(--warning); border-radius: var(--radius-sm); padding: 16px 20px; margin-bottom: 20px; font-size: 0.85rem; color: #78350f; line-height: 1.7; display: none; }
+.nota-legal.visible { display: block; }
+.nota-legal h4 { font-size: 0.9rem; font-weight: 700; margin-bottom: 8px; color: #92400e; }
+.nota-legal strong { color: #78350f; }
+.nota-legal ul { margin: 6px 0 6px 20px; }
+.nota-legal li { margin-bottom: 3px; }
+.seccion-formulario { background: var(--card); border-radius: var(--radius); padding: 20px 24px; margin-bottom: 16px; box-shadow: var(--shadow); border: 1px solid var(--border); transition: box-shadow 0.2s, border-color 0.2s; }
+.seccion-formulario:hover { box-shadow: var(--shadow-lg); border-color: var(--accent); }
+.seccion-formulario h2 { font-size: 0.95rem; font-weight: 600; color: var(--primary); margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--accent); display: flex; align-items: center; gap: 8px; }
+.seccion-formulario h2::before { content: ''; display: inline-block; width: 4px; height: 18px; background: var(--accent); border-radius: 2px; }
+.grid-campos { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 20px; }
+.grid-campos .ancho-completo { grid-column: 1 / -1; }
+.grupo-entrada { display: flex; flex-direction: column; gap: 4px; }
+.grupo-entrada label { font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.3px; }
+.grupo-entrada input, .grupo-entrada select { padding: 9px 12px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 0.88rem; font-family: var(--font); color: var(--text); background: var(--card); transition: border-color 0.2s, box-shadow 0.2s; outline: none; }
+.grupo-entrada input:focus, .grupo-entrada select:focus { border-color: var(--border-focus); box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.12); }
+.grupo-entrada input::placeholder { color: var(--text-muted); font-size: 0.82rem; }
+.grupo-entrada select { cursor: pointer; }
+.grupo-tipo { display: none; }
+.grupo-tipo.visible { display: block; }
+.botones { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+.botones .ancho-completo { grid-column: 1 / -1; }
+.boton { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 13px 24px; border: none; border-radius: var(--radius-sm); font-size: 0.92rem; font-weight: 600; font-family: var(--font); cursor: pointer; transition: all 0.2s; text-decoration: none; }
+.boton-pdf { background: var(--success); color: white; }
+.boton-pdf:hover { background: var(--success-dark); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35); }
+.boton-imprimir { background: var(--accent); color: white; }
+.boton-imprimir:hover { background: var(--accent-dark); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(14, 165, 233, 0.35); }
+.boton-restablecer { background: transparent; color: var(--text-secondary); border: 1.5px solid var(--border); }
+.boton-restablecer:hover { background: var(--bg); border-color: var(--text-muted); color: var(--text); }
+.boton svg { width: 18px; height: 18px; flex-shrink: 0; }
+.notificacion { display: none; padding: 12px 18px; border-radius: var(--radius-sm); font-size: 0.88rem; font-weight: 500; margin-bottom: 20px; animation: deslizar 0.3s ease; }
+.notificacion.mostrar { display: flex; align-items: center; gap: 8px; }
+.notificacion.exito { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+@keyframes deslizar { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+.vista-impresion { display: none; }
+@media (max-width: 640px) {
+  body { padding: 12px; }
+  .cabecera { padding: 24px 16px; } .cabecera h1 { font-size: 1.3rem; }
+  .selector-tipo { grid-template-columns: 1fr; }
+  .seccion-formulario { padding: 14px; } .grid-campos { grid-template-columns: 1fr; }
+  .botones { grid-template-columns: 1fr; }
+}
+@media print {
+  @page { size: A4; margin: 2.5cm 2cm 2.5cm 2cm; }
+  body { background: #fff; padding: 0; margin: 0; font-family: var(--font-serif); font-size: 11pt; color: #000; line-height: 1.5; }
+  .contenedor { display: none; }
+  .vista-impresion { display: block !important; text-align: justify; }
+  .texto-centrado { text-align: center; } .texto-negrita { font-weight: bold; }
+  p { margin-bottom: 12pt; margin-top: 0; }
+  .contenedor-firmas { display: flex; justify-content: space-between; margin-top: 50pt; page-break-inside: avoid; }
+  .bloque-firma { width: 45%; text-align: center; }
+  .saltopagina { page-break-before: always; }
+  .nota-legal-print { font-size: 9pt; color: #333; border: 1px solid #999; padding: 10px 14px; margin-bottom: 16pt; background: #f9f9f9; }
+  .nota-legal-print h4 { font-size: 10pt; margin-bottom: 6px; }
+}
+</style>
+</head>
+<body>
+
+<div class="contenedor">
+  <header class="cabecera">
+    <h1>Editor de Contratos de Alquiler</h1>
+    <p>Seleccione el tipo de contrato y complete los datos</p>
+  </header>
+
+  <div id="notificacion" class="notificacion"></div>
+
+  <!-- SELECTOR DE TIPO -->
+  <div class="selector-tipo">
+    <div class="tipo-card" data-tipo="temporada" onclick="seleccionarTipo('temporada')">
+      <span class="radio-dot"></span>
+      <h3>Alquiler de Temporada</h3>
+      <p>Para periodos definidos con motivo específico (trabajo, estudios, etc.)</p>
+      <span class="tag disponible">Disponible</span>
+    </div>
+    <div class="tipo-card" data-tipo="vivienda" onclick="seleccionarTipo('vivienda')">
+      <span class="radio-dot"></span>
+      <h3>Vivienda Habitual</h3>
+      <p>Para cubrir la necesidad permanente de vivienda</p>
+      <span class="tag disponible">Disponible</span>
+    </div>
+    <div class="tipo-card" data-tipo="local" onclick="seleccionarTipo('local')" style="opacity:0.5;cursor:not-allowed;">
+      <span class="radio-dot"></span>
+      <h3>Local Comercial</h3>
+      <p>Para locales, naves y espacios comerciales</p>
+      <span class="tag" style="background:#fef3c7;color:#92400e;">Próximamente</span>
+    </div>
+    <div class="tipo-card" data-tipo="grandes" onclick="seleccionarTipo('grandes')" style="opacity:0.5;cursor:not-allowed;">
+      <span class="radio-dot"></span>
+      <h3>Grandes Tenedores</h3>
+      <p>Para propietarios con más de 10 inmuebles</p>
+      <span class="tag" style="background:#fef3c7;color:#92400e;">Próximamente</span>
+    </div>
+  </div>
+
+  <!-- NOTA LEGAL TEMPORADA -->
+  <div class="nota-legal visible" id="nota-temporada">
+    <h4>Notas sobre el contrato de temporada</h4>
+    <p>Los contratos de temporada están dentro del ámbito especial de la norma en materia de arrendamientos urbanos, se equiparan a los denominados <strong>"uso distinto de vivienda"</strong>.</p>
+    <p>Lo relevante para concluir si nos encontramos ante un contrato de temporada o un contrato de vivienda habitual <strong>no es el número de meses</strong> que dure el contrato sino <strong>su finalidad</strong>.</p>
+    <p>Por ello es necesario que la causa que justifique la temporalidad del contrato se haga constar (estudios, motivos laborales, etcétera).</p>
+    <p><strong>Un contrato de temporada con una finalidad correcta provoca:</strong></p>
+    <ul>
+      <li>Que el contrato termine en la fecha acordada, sin prórrogas (LAU arts. 9 y 10).</li>
+      <li>Que queden gobernados 1º por los pactos entre las partes, 2º por la LAU (art. 29 a 35), y subsidiariamente al Código Civil.</li>
+      <li>La fianza será de <strong>dos meses</strong> (uso distinto de vivienda).</li>
+    </ul>
+    <p><strong>Importante:</strong> No confundir con alquiler turístico. Si se realiza en "Fraude de Ley", su tratamiento será el de vivienda habitual.</p>
+  </div>
+
+  <!-- NOTA LEGAL VIVIENDA -->
+  <div class="nota-legal" id="nota-vivienda">
+    <h4>Notas sobre el contrato de vivienda habitual</h4>
+    <p>Este contrato se rige por la Ley 29/1994 de Arrendamientos Urbanos (LAU), modificada por el Real Decreto-ley 7/2019 y la Ley 12/2023 por el Derecho a la Vivienda.</p>
+    <p><strong>Características principales:</strong></p>
+    <ul>
+      <li>Duración mínima de <strong>5 años</strong> (7 si el arrendador es persona jurídica), con prórrogas obligatorias.</li>
+      <li>El arrendatario puede desistir con 30 días de antelación, indemnizando con una mensualidad por año restante.</li>
+      <li>La renta se revisa anualmente según el Índice de Referencia de Arrendamientos de Vivienda (IRAV).</li>
+      <li>La fianza legal es de <strong>una mensualidad</strong>.</li>
+      <li>El arrendador puede recuperar la vivienda para uso propio tras el primer año (art. 9.3 LAU).</li>
+    </ul>
+  </div>
+
+  <!-- ARRENDADOR -->
+  <section class="seccion-formulario">
+    <h2>Datos del Arrendador</h2>
+    <div class="grid-campos">
+      <div class="grupo-entrada ancho-completo">
+        <label>Nombre Completo</label>
+        <input type="text" id="campo-arrendador-nombre" placeholder="Ej: JUAN ANTONIO GARRIDO DIAZ">
+      </div>
+      <div class="grupo-entrada">
+        <label>DNI / NIF</label>
+        <input type="text" id="campo-arrendador-dni" placeholder="Ej: 12.345.678-Z">
+      </div>
+      <div class="grupo-entrada">
+        <label>Dirección (domicilio)</label>
+        <input type="text" id="campo-arrendador-direccion" placeholder="Ej: Ciudad, calle, nº">
+      </div>
+      <div class="grupo-entrada">
+        <label>Estado civil</label>
+        <input type="text" id="campo-arrendador-estado" placeholder="Ej: casado/a, soltero/a">
+      </div>
+      <div class="grupo-entrada">
+        <label>Régimen</label>
+        <input type="text" id="campo-arrendador-regimen" placeholder="Ej: gananciales, separación">
+      </div>
+    </div>
+  </section>
+
+  <!-- ARRENDATARIO -->
+  <section class="seccion-formulario">
+    <h2>Datos del Arrendatario</h2>
+    <div class="grid-campos">
+      <div class="grupo-entrada ancho-completo">
+        <label>Nombre Completo</label>
+        <input type="text" id="campo-arrendatario-nombre" placeholder="Ej: MARIA JIMENEZ ARCO">
+      </div>
+      <div class="grupo-entrada">
+        <label>DNI / NIF</label>
+        <input type="text" id="campo-arrendatario-dni" placeholder="Ej: 12.345.678-Z">
+      </div>
+      <div class="grupo-entrada">
+        <label>Dirección (domicilio)</label>
+        <input type="text" id="campo-arrendatario-direccion" placeholder="Ej: Ciudad, calle, nº">
+      </div>
+      <div class="grupo-entrada">
+        <label>Estado civil</label>
+        <input type="text" id="campo-arrendatario-estado" placeholder="Ej: casado/a, soltero/a">
+      </div>
+      <div class="grupo-entrada">
+        <label>Régimen</label>
+        <input type="text" id="campo-arrendatario-regimen" placeholder="Ej: gananciales, separación">
+      </div>
+      <div class="grupo-entrada ancho-completo grupo-tipo visible" data-mostrar="temporada">
+        <label>Domicilio habitual</label>
+        <input type="text" id="campo-arrendatario-domicilio" placeholder="Ej: Ciudad, calle, nº (donde reside habitualmente)">
+      </div>
+    </div>
+  </section>
+
+  <!-- AVALISTA -->
+  <section class="seccion-formulario grupo-tipo" data-mostrar="vivienda">
+    <h2>Datos del Avalista</h2>
+    <div class="grid-campos">
+      <div class="grupo-entrada ancho-completo">
+        <label>Nombre Completo</label>
+        <input type="text" id="campo-avalista-nombre" placeholder="Ej: Nombre del avalista">
+      </div>
+      <div class="grupo-entrada">
+        <label>DNI / NIF</label>
+        <input type="text" id="campo-avalista-dni" placeholder="Ej: 12.345.678-Z">
+      </div>
+      <div class="grupo-entrada">
+        <label>Dirección</label>
+        <input type="text" id="campo-avalista-direccion" placeholder="Ej: Ciudad, calle, nº">
+      </div>
+      <div class="grupo-entrada">
+        <label>Estado civil</label>
+        <input type="text" id="campo-avalista-estado" placeholder="Ej: casado/a, soltero/a">
+      </div>
+      <div class="grupo-entrada">
+        <label>Régimen</label>
+        <input type="text" id="campo-avalista-regimen" placeholder="Ej: gananciales, separación">
+      </div>
+      <div class="grupo-entrada">
+        <label>Teléfono</label>
+        <input type="text" id="campo-avalista-telefono" placeholder="Ej: 600 000 000">
+      </div>
+      <div class="grupo-entrada">
+        <label>Email</label>
+        <input type="text" id="campo-avalista-email" placeholder="Ej: email@ejemplo.com">
+      </div>
+    </div>
+  </section>
+
+  <!-- INMUEBLE -->
+  <section class="seccion-formulario">
+    <h2>Datos del Inmueble</h2>
+    <div class="grid-campos">
+      <div class="grupo-entrada ancho-completo">
+        <label>Dirección del Inmueble</label>
+        <input type="text" id="campo-inmueble-direccion" placeholder="Ej: Ciudad, calle, nº, piso">
+      </div>
+      <div class="grupo-entrada grupo-tipo" data-mostrar="vivienda">
+        <label>Superficie construida (m²)</label>
+        <input type="text" id="campo-inmueble-sup-construida" placeholder="Ej: 90">
+      </div>
+      <div class="grupo-entrada grupo-tipo" data-mostrar="vivienda">
+        <label>Superficie útil (m²)</label>
+        <input type="text" id="campo-inmueble-sup-util" placeholder="Ej: 80">
+      </div>
+      <div class="grupo-entrada">
+        <label>Registro de la Propiedad nº</label>
+        <input type="text" id="campo-registro-numero" placeholder="Ej: 3">
+      </div>
+      <div class="grupo-entrada">
+        <label>Nº de finca registral</label>
+        <input type="text" id="campo-registro-finca" placeholder="Ej: 12345">
+      </div>
+      <div class="grupo-entrada">
+        <label>Referencia catastral</label>
+        <input type="text" id="campo-registro-catastro" placeholder="Ej: 1234567AB7890S">
+      </div>
+
+      <div class="grupo-entrada grupo-tipo" data-mostrar="vivienda">
+        <label>Notaría (ciudad)</label>
+        <input type="text" id="campo-inmueble-notaria" placeholder="Ej: Nombre del notario y ciudad">
+      </div>
+      <div class="grupo-entrada grupo-tipo" data-mostrar="vivienda">
+        <label>Nombre del notario</label>
+        <input type="text" id="campo-inmueble-notario-nombre" placeholder="Ej: Don/Doña">
+      </div>
+      <div class="grupo-entrada grupo-tipo" data-mostrar="vivienda">
+        <label>Fecha escritura</label>
+        <input type="text" id="campo-inmueble-fecha-escritura" placeholder="Ej: 1 de enero de 2020">
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTRATO -->
+  <section class="seccion-formulario">
+    <h2>Datos del Contrato</h2>
+    <div class="grid-campos">
+      <div class="grupo-entrada ancho-completo">
+        <label>Lugar y Fecha de Firma</label>
+        <input type="text" id="campo-contrato-lugar-fecha" placeholder="Ej: En Madrid, a 1 de enero de 2025">
+      </div>
+
+      <!-- Campos TEMPORADA -->
+      <div class="grupo-entrada ancho-completo grupo-tipo visible" data-mostrar="temporada">
+        <label>Motivo de la temporalidad</label>
+        <input type="text" id="campo-contrato-motivo" placeholder="Ej: trabajo, estudio, tratamiento médico...">
+      </div>
+      <div class="grupo-entrada grupo-tipo visible" data-mostrar="temporada">
+        <label>Fecha de Inicio</label>
+        <input type="text" id="campo-contrato-inicio" placeholder="Ej: 1 de enero de 2025">
+      </div>
+      <div class="grupo-entrada grupo-tipo visible" data-mostrar="temporada">
+        <label>Fecha de Fin</label>
+        <input type="text" id="campo-contrato-fin" placeholder="Ej: 31 de enero de 2025">
+      </div>
+      <div class="grupo-entrada grupo-tipo visible" data-mostrar="temporada">
+        <label>Precio total (en letra)</label>
+        <input type="text" id="campo-renta-letra" placeholder="Ej: TRES MIL EUROS">
+      </div>
+      <div class="grupo-entrada grupo-tipo visible" data-mostrar="temporada">
+        <label>Precio total (número)</label>
+        <input type="text" id="campo-renta-numero" placeholder="Ej: 3.000,00">
+      </div>
+      <div class="grupo-entrada ancho-completo grupo-tipo visible" data-mostrar="temporada">
+        <label>Forma de pago</label>
+        <select id="campo-contrato-forma-pago">
+          <option value="unico">Pago único antes del inicio</option>
+          <option value="mensual">Mensualidades anticipadas</option>
+        </select>
+      </div>
+      <div class="grupo-entrada ancho-completo grupo-tipo visible" data-mostrar="temporada">
+        <label>IBAN para domiciliación</label>
+        <input type="text" id="campo-contrato-iban" placeholder="Ej: ES00 0000 0000 0000 0000 0000">
+      </div>
+      <div class="grupo-entrada grupo-tipo visible" data-mostrar="temporada">
+        <label>Importe de la fianza</label>
+        <input type="text" id="campo-contrato-fianza" placeholder="Ej: 600,00">
+      </div>
+      <div class="grupo-entrada grupo-tipo visible" data-mostrar="temporada">
+        <label>Opción suministros</label>
+        <select id="campo-contrato-suministros">
+          <option value="opcion1">Opción 1: Pago junto con la renta</option>
+          <option value="opcion2">Opción 2: Domiciliación bancaria</option>
+          <option value="opcion3">Opción 3: Cambio de titularidad</option>
+        </select>
+      </div>
+      <div class="grupo-entrada ancho-completo grupo-tipo visible" data-mostrar="temporada">
+        <label>Nombre de los convivientes</label>
+        <input type="text" id="campo-contrato-convivientes" placeholder="Ej: nombre de las personas con las que convive">
+      </div>
+
+      <!-- Campos VIVIENDA -->
+      <div class="grupo-entrada grupo-tipo" data-mostrar="vivienda">
+        <label>Fecha de inicio del contrato</label>
+        <input type="text" id="campo-vivienda-inicio" placeholder="Ej: 1 de enero de 2025">
+      </div>
+      <div class="grupo-entrada grupo-tipo" data-mostrar="vivienda">
+        <label>Duración (años)</label>
+        <input type="text" id="campo-vivienda-duracion" placeholder="Ej: 1">
+      </div>
+      <div class="grupo-entrada grupo-tipo" data-mostrar="vivienda">
+        <label>Renta mensual (en letra)</label>
+        <input type="text" id="campo-vivienda-renta-letra" placeholder="Ej: QUINIENTOS EUROS">
+      </div>
+      <div class="grupo-entrada grupo-tipo" data-mostrar="vivienda">
+        <label>Renta mensual (número €)</label>
+        <input type="text" id="campo-vivienda-renta-numero" placeholder="Ej: 500,00">
+      </div>
+      <div class="grupo-entrada ancho-completo grupo-tipo" data-mostrar="vivienda">
+        <label>IBAN del arrendador (para domiciliación)</label>
+        <input type="text" id="campo-vivienda-iban" placeholder="Ej: ES00 0000 0000 0000 0000 0000">
+      </div>
+      <div class="grupo-entrada grupo-tipo" data-mostrar="vivienda">
+        <label>Fianza (importe)</label>
+        <input type="text" id="campo-vivienda-fianza" placeholder="Ej: 500,00">
+      </div>
+      <div class="grupo-entrada grupo-tipo" data-mostrar="vivienda">
+        <label>Seguro RC (capital mínimo)</label>
+        <input type="text" id="campo-vivienda-seguro-rc" placeholder="Ej: 150.000">
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACTO -->
+  <section class="seccion-formulario">
+    <h2>Datos de Contacto y Notificaciones</h2>
+    <div class="grid-campos">
+      <div class="grupo-entrada">
+        <label>Teléfono del arrendador</label>
+        <input type="text" id="campo-arrendador-telefono" placeholder="Ej: 600 000 000">
+      </div>
+      <div class="grupo-entrada">
+        <label>Email del arrendador</label>
+        <input type="text" id="campo-arrendador-email" placeholder="Ej: email@ejemplo.com">
+      </div>
+      <div class="grupo-entrada">
+        <label>Teléfono del arrendatario</label>
+        <input type="text" id="campo-arrendatario-telefono" placeholder="Ej: 600 000 000">
+      </div>
+      <div class="grupo-entrada">
+        <label>Email del arrendatario</label>
+        <input type="text" id="campo-arrendatario-email" placeholder="Ej: email@ejemplo.com">
+      </div>
+      <div class="grupo-entrada grupo-tipo" data-mostrar="vivienda">
+        <label>Teléfono del avalista</label>
+        <input type="text" id="campo-avalista-telefono2" placeholder="Ej: 600 000 000">
+      </div>
+      <div class="grupo-entrada grupo-tipo" data-mostrar="vivienda">
+        <label>Email del avalista</label>
+        <input type="text" id="campo-avalista-email2" placeholder="Ej: email@ejemplo.com">
+      </div>
+    </div>
+  </section>
+
+  <!-- BOTONES -->
+  <div class="botones">
+    <button class="boton boton-pdf" onclick="ejecutarImpresion()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      Guardar PDF
+    </button>
+    <button class="boton boton-imprimir" onclick="window.print()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Imprimir
+    </button>
+    <button class="boton boton-restablecer ancho-completo" onclick="restablecerValores()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+      Restablecer valores por defecto
+    </button>
+  </div>
+</div>
+
+<!-- CONTRATO DE TEMPORADA -->
+<div class="vista-impresion" id="contrato-temporada">
+<div class="nota-legal-print">
+<h4>NOTAS</h4>
+<p>Los contratos de temporada están dentro del ámbito especial de la norma en materia de arrendamientos urbanos, se equiparan a los denominados "uso distinto de vivienda". Lo relevante para concluir si nos encontramos ante un contrato de temporada o un contrato de vivienda habitual no es el número de meses que dure el contrato sino su finalidad, es decir, si esta cubre o no la necesidad permanente de vivienda del arrendatario. Por ello es necesario que la causa que justifique la temporalidad del contrato se haga constar (estudios, motivos laborales, etcétera). Un contrato de temporada con una finalidad correcta provoca: - Que el contrato termine en la fecha acordada, sin que exista un sistema de prórrogas como el que recoge la Ley de Arrendamientos Urbanos en sus artículos 9 y 10. - Que queden gobernados 1º por los pactos entre las partes, 2º por la LAU (art. 29 a 35, y subsidiariamente al Código Civil. - La fianza será de dos meses porque se considera para uso distinto al de vivienda. No se deben confundir este tipo de contratos con el alquiler de viviendas turísticas. Si se realiza un contrato de temporada en lo que se denomina "Fraude de Ley", por ejemplo, si bajo la modalidad de un contrato de temporada realmente se está satisfaciendo la necesidad permanente de vivienda del inquilino, su tratamiento será precisamente el de vivienda habitual, independientemente de lo que se haya pactado en el contrato suscrito.</p>
+</div>
+<p class="texto-centrado texto-negrita">CONTRATO DE ARRENDAMIENTO TEMPORADA</p>
+<p class="texto-negrita">INTERVINIENTES</p>
+<p>De una parte D/Dña. <span class="etiqueta-arrendador-nombre texto-negrita">______________________</span>, y D/Dña. <span class="etiqueta-arrendador-nombre2 texto-negrita">______________________</span> mayores de edad, estado civil <span class="etiqueta-arrendador-estado">______________________</span> en régimen de <span class="etiqueta-arrendador-regimen">______________________</span>, con domicilio en el municipio de <span class="etiqueta-arrendador-direccion">______________________</span> D.N.I/N.I.F número <span class="etiqueta-arrendador-dni">______________________</span> y <span class="etiqueta-arrendador-dni2">______________________</span> respectivamente, que en adelante serán denominados el ARRENDADOR.</p>
+<p>De otra D/Dña. <span class="etiqueta-arrendatario-nombre texto-negrita">______________________</span>, y D/Dña. <span class="etiqueta-arrendatario-nombre2 texto-negrita">______________________</span> mayores de edad, estado civil <span class="etiqueta-arrendatario-estado">______________________</span> en régimen de <span class="etiqueta-arrendatario-regimen">______________________</span>, con domicilio en el municipio de <span class="etiqueta-arrendatario-direccion">______________________</span>, D.N.I/N.I.F número <span class="etiqueta-arrendatario-dni">______________________</span>, y <span class="etiqueta-arrendatario-dni2">______________________</span> respectivamente, que en adelante serán denominados la parte ARRENDATARIA.</p>
+<p>Conjuntamente LAS PARTES.</p>
+<p>Ambas partes intervienen en su propio nombre y representación, reconociéndose plena capacidad para el otorgamiento del presente contrato y,</p>
+<p class="texto-negrita">EXPONEN</p>
+<p>I. Que la PARTE ARRENDADORA es propietario/a de la finca urbana sita en <span class="etiqueta-inmueble-direccion texto-negrita">______________________</span>, inscrita en el Registro de la Propiedad número <span class="etiqueta-registro-numero">****</span> de <span class="etiqueta-contrato-lugar-fecha">****</span>, finca registral núm. <span class="etiqueta-registro-finca">****</span>. En el catastro obra con referencia catastral núm. <span class="etiqueta-registro-catastro">********************</span>.</p>
+<p>II. Que la PARTE ARRENDATARIA está interesada en arrendar dicho inmueble con carácter temporal, por ello, tras las negociaciones previas a la firma del presente contrato, ambas partes acuerdan suscribir el mismo en base a las siguientes,</p>
+<p class="texto-negrita">CLÁUSULAS</p>
+<p><span class="texto-negrita">Primera. Régimen jurídico y legislación.</span> El presente contrato se regirá por la voluntad de LAS PARTES expresada en el contrato, en su defecto, por lo dispuesto en el Título III de la Ley 29/1994 de 24 de noviembre de Arrendamientos Urbanos (en adelante LAU), salvo que se acuerde su exclusión de forma expresa, y supletoriamente por el Código Civil. La PARTE ARRENDATARIA renuncia al contenido de los artículos 31 a 33 de la LAU, es decir, a los derechos de subrogación, cesión o traspaso, total o parcial, tanteo y retracto.</p>
+<p><span class="texto-negrita">Segunda. Destino.</span> La PARTE ARRENDATARIA tiene su domicilio habitual sito en <span class="etiqueta-arrendatario-domicilio">*****************</span>, donde convive con <span class="etiqueta-contrato-convivientes">*****************</span>, arrienda el inmueble descrito en el presente contrato de arrendamiento con carácter temporal, por motivos <span class="etiqueta-contrato-motivo texto-negrita">PONER MOTIVO (trabajo, estudio, cuidado de familiar, tratamientos médicos, cualquiera que conlleve la necesidad de utilizar una segunda vivienda con carácter no habitual y de manera temporal)</span>. Será causa de resolución del presente contrato el cambio del destino del inmueble arrendado. Declara la PARTE ARRENDATARIA con la suscripción del presente que no destinará la vivienda para cubrir su necesidad de vivienda habitual.</p>
+<p><span class="texto-negrita">Tercera. Duración.</span> El plazo de duración del presente contrato es desde el <span class="etiqueta-contrato-inicio texto-negrita">**/**/****</span> hasta el <span class="etiqueta-contrato-fin texto-negrita">**/**/****</span>, siendo dicho plazo obligatorio para LAS PARTES. No cabe derecho a desistimiento, por lo que, la resolución anticipada formal o tácita por parte del arrendatario, se considerará a todos los efectos un incumplimiento, debiendo indemnizar la PARTE ARRENDATARIA al ARRENDADOR, con el abono del mismo número de mensualidades que resten hasta la finalización del contrato. Si llegado el día del vencimiento del contrato fijada libremente por LAS PARTES, la PARTE ARRENDATARIA no dejara el inmueble libre y expedito de personas y enseres, manteniéndose en la posesión del mismos, se establece como cláusula penal cumulativa el pago por la PARTE ARRENDATARIA de un importe equivalente a la renta mensual que viniera devengando al momento del vencimiento.</p>
+<p><span class="texto-negrita">Cuarta. Precio.</span> El precio pactado es de <span class="etiqueta-renta-letra texto-negrita">LETRA EUROS</span> (<span class="etiqueta-renta-numero texto-negrita">NÚMERO EUROS</span>) fijado para todo el periodo de duración del arriendo, que (i) deberá abonarse en un solo plazo antes del día <span class="etiqueta-contrato-inicio">**/**/****</span>: (ii) será abonado por mensualidades anticipadas de importe ***,** € cada una dentro de los primeros siete días del mes. El abono se realizará mediante transferencia bancaria designando la PARTE ARRENDADORA a tal fin la siguiente: ENTIDAD BANCARIA: ____________ IBAN: <span class="etiqueta-contrato-iban texto-negrita">__________________________________</span>. En el caso de que la duración del arriendo fuera superior a UN AÑO, la renta será revisada anualmente, por periodos de doce meses cumplidos, durante toda la vigencia del arrendamiento, para acomodarla a las variaciones que sufra el Índice de Precios de Consumo (IPC) publicado por el Instituto Nacional de Estadística (u organismo análogo que lo sustituya) para el conjunto nacional total, durante los doce meses naturales inmediatamente anteriores a la fecha de cada revisión. De tal modo, que la renta actualizada vendrá constituida por el resultado de sumar o restar, según proceda, a la renta hasta entonces vigente, el resultado de aplicar el mencionado sistema de revisión.</p>
+<p><span class="texto-negrita">Quinta. Gastos Generales y suministros.</span> Los gastos generales del inmueble – Gastos de Comunidad, IBI y tasas- serán asumidos por la PARTE ARRENDADORA. El pago de los importes derivados del consumo de suministros será por cuenta y riesgo de la PARTE ARRENDATARIA, <span class="etiqueta-contrato-suministros">ELEGIR ENTRE VARIAS OPCIONES</span>. Será causa de resolución del presente contrato el incumplimiento por la PARTE ARRENDATARIA, de lo fijado en la presente cláusula.</p>
+<p><span class="texto-negrita">Sexta. Estado del inmueble.</span> La PARTE ARRENDATARIA declara haber inspeccionado con carácter previo el objeto de arriendo, reconociendo que se entrega en perfectas condiciones de conservación y habitabilidad. La vivienda se encuentra amueblada conforme a inventario con relación de mobiliario, utensilios y menaje que se acompaña como ANEXO I. En el caso de que se detecte la falta o defecto de alguno de los objetos inventariados la PARTE ARRENDATARIA lo deberá poner en conocimiento de la PARTE ARRENDADORA dentro de las primeras 24 horas de duración del presente contrato.</p>
+<p><span class="texto-negrita">Séptima. Responsabilidad.</span> La PARTE ARRENDATARIA se hace directa y exclusivamente responsables por los daños que puedan causarse en primera persona, por los convivientes, invitados, y ocupantes, eximiendo de responsabilidad a la PARTE ARRENDADORA, a efectos de una posible indemnización de daños y perjuicios que pudiera derivarse de tales actos, tanto en la vivienda arrendada como su mobiliario, como a terceros. Igualmente, deberá respetar la legislación vigente en cada momento, así como en su caso las normas de la Comunidad de Propietarios, manteniendo en todo momento la armonía y convivencia de la Comunidad.</p>
+<p><span class="texto-negrita">Octava. Fianza.</span> LAS PARTES han fijado un importe de <span class="etiqueta-contrato-fianza texto-negrita">____ €</span>, en concepto de fianza, para garantizar el cumplimiento de las obligaciones del presente contrato, incluyendo, la sustitución o reparación de los bienes inventariados en el ANEXO I.</p>
+<p><span class="texto-negrita">Novena. Efectos Del Incumplimiento.</span> El incumplimiento de las condiciones fijadas en el presente contrato facultará a la parte cumplidora a, conforme el artículo 1.124 CC, exigir el cumplimiento de la obligado o a resolver el contrato. Así mismo, LAS PARTES pactan la posibilidad de resolver igualmente el contrato de arrendamiento para uso distinto al de vivienda en los supuestos del artículo 27 de la LAU, se citan a título enunciativo las siguientes: - Cesión o subarriendo sin autorización de la propiedad. - Realización de actividades molestas, insalubres, peligrosas o ilícitas en el objeto de arriendo. - Alterar el destino del inmueble que se ha pactado en el contrato. - Falta de pago del precio fijado.</p>
+<p><span class="texto-negrita">Décima. Notificaciones.</span> Las comunicaciones entre las Partes en relación al Contrato se dirigirán:</p>
+<p>Por el arrendatario:<br>- Dirección Postal: <span class="etiqueta-arrendatario-direccion">_______________________________</span><br>- Mail: <span class="etiqueta-arrendatario-email">________________________________________</span><br>- Teléfono: <span class="etiqueta-arrendatario-telefono">_______________</span></p>
+<p>Por el arrendador:<br>- Dirección Postal: <span class="etiqueta-arrendador-direccion">_______________________________</span><br>- Mail: <span class="etiqueta-arrendador-email">________________________________________</span><br>- Teléfono: <span class="etiqueta-arrendador-telefono">_______________</span></p>
+<p>Ambas partes pactan como medio válido y preferente a efecto de notificaciones derivadas del presente Contrato de Arrendamiento, así como, para la remisión de cualesquiera Métodos Adecuados de Solución de Controversias (MASC) de los regulados en la Ley Orgánica 1/2025 de 2 de enero de medidas de eficiencia en el Sector Público de Justicia, o requerimientos derivados de incumplimientos, los correos electrónicos reseñados siempre que se garantice su autenticidad, y quede constancia de su envío y recepción así como de su fehaciencia. El cambio de cualesquiera de los datos consignados en la presente cláusula deberá ser comunicado de manera fehaciente a la contraparte en el plazo más breve posible, y siempre dentro de los quince (15) días desde su modificación. Las Partes acuerdan expresamente que el doble intento de notificación postal, la entrega a tercera persona distinta al destinatario mayor de 14 años en el domicilio arrendado o designado a efecto de notificaciones, el rehúse por el destinatario, o la imposibilidad de entrega por ausencia de actualización de datos, tendrá los mismos efectos que si la comunicación se hubiera entregado al propio destinatario, por lo que en estos casos, no será necesario realizar nuevo intento de invitación/comunicación/requerimiento, ni acudir a otro MASC distinto al intentado previamente.</p>
+<p><span class="texto-negrita">Undécima. Protección de datos.</span> Las partes firmantes del presente contrato declaran conocer tanto el Reglamento (UE) 2016/279 de 27 de abril de 2016 (RGPD), relativo a la protección de las personas físicas en lo que respecta al tratamiento de datos personales y a la libre circulación de estos, como la Ley Orgánica 3/2018 de 5 de diciembre, de Protección de Datos Personales y garantía de los derechos digitales. En virtud de lo establecido en la normativa vigente, las partes otorgan su consentimiento para la inclusión de sus datos en un fichero responsabilidad de la otra parte, con la finalidad del mantenimiento de la relación contractual, pudiendo ejercitar los derechos de acceso, rectificación, cancelación y oposición en la dirección del arrendador indicada en la cláusula de notificaciones del presente documento.</p>
+<p>Y en prueba de conformidad y aceptación con todo lo anteriormente expuesto y estipulado, se firma el presente por duplicado y a un solo efecto en el lugar y fecha que en el principio se indican.</p>
+<div class="contenedor-firmas">
+  <div class="bloque-firma"><p class="texto-negrita">EL ARRENDADOR,</p><br><br><br><br><p>Fdo.: <span class="etiqueta-arrendador-nombre">______________________</span></p></div>
+  <div class="bloque-firma"><p class="texto-negrita">EL ARRENDATARIO,</p><br><br><br><br><p>Fdo.: <span class="etiqueta-arrendatario-nombre">______________________</span></p></div>
+</div>
+</div>
+
+<!-- CONTRATO DE VIVIENDA HABITUAL -->
+<div class="vista-impresion" id="contrato-vivienda">
+<p class="texto-centrado texto-negrita">CONTRATO DE ARRENDAMIENTO DE VIVIENDA</p>
+<p class="texto-centrado">En <span class="etiqueta-contrato-lugar-fecha">____________________</span></p>
+
+<p class="texto-negrita">REUNIDOS</p>
+
+<p>De una parte D/Dña. <span class="etiqueta-arrendador-nombre texto-negrita">___________________________________________</span>, y D/Dña. <span class="etiqueta-arrendador-nombre2 texto-negrita">___________________________________________</span> mayores de edad, estado civil <span class="etiqueta-arrendador-estado">_______________________</span> en régimen de <span class="etiqueta-arrendador-regimen">_____________</span>, con domicilio en el municipio de <span class="etiqueta-arrendador-direccion">___________________________________________</span> D.N.I/N.I.F número <span class="etiqueta-arrendador-dni">__________</span> y <span class="etiqueta-arrendador-dni2">__________________</span> respectivamente, que en adelante serán denominados el ARRENDADOR.</p>
+
+<p>De otra D/Dña. <span class="etiqueta-arrendatario-nombre texto-negrita">_____________________________________________________________</span>, y D/Dña. <span class="etiqueta-arrendatario-nombre2 texto-negrita">___________________________________________</span> mayores de edad, estado civil <span class="etiqueta-arrendatario-estado">___________________________________________</span> en régimen de <span class="etiqueta-arrendatario-regimen">_____________</span>, con domicilio en el municipio de <span class="etiqueta-arrendatario-direccion">___________________________________________</span>, D.N.I/N.I.F número <span class="etiqueta-arrendatario-dni">______________</span>, y <span class="etiqueta-arrendatario-dni2">_________________</span> respectivamente, que en adelante serán denominados la parte ARRENDATARIA.</p>
+
+<p>Y de otra D/Dña. <span class="etiqueta-avalista-nombre texto-negrita">____________________________________________________________</span> y D/Dña. <span class="etiqueta-avalista-nombre2 texto-negrita">___________________________________________</span> mayores de edad, estado civil <span class="etiqueta-avalista-estado">___________</span> en régimen de <span class="etiqueta-avalista-regimen">________________</span>, con domicilio en el municipio de <span class="etiqueta-avalista-direccion">___________________________________________</span>, D.N.I/N.I.F número <span class="etiqueta-avalista-dni">________________</span>, y <span class="etiqueta-avalista-dni2">_________________</span> respectivamente, que en adelante serán denominados los AVALISTAS personales y solidarios.</p>
+
+<p>Las partes tienen y se reconocen mutuamente plena capacidad para el otorgamiento del presente contrato y a tal fin:</p>
+
+<p class="texto-negrita">EXPONEN</p>
+
+<p><span class="texto-negrita">PRIMERO.</span> - Que D/Dª. <span class="etiqueta-arrendador-nombre">___________________________________________</span> es propietario de la finca urbana sita en <span class="etiqueta-inmueble-direccion texto-negrita">_______________________________________</span> Inscrita en el Registro de la Propiedad Nº <span class="etiqueta-registro-numero">_________</span> de <span class="etiqueta-contrato-lugar-fecha">______</span>, Finca <span class="etiqueta-registro-finca">_________</span> Con referencia catastral <span class="etiqueta-registro-catastro">______________</span>. Se adjunta como anexo I al presente contrato, fotocopia del Certificado de eficiencia energética de conformidad con lo establecido en el Real Decreto 235/2013, de 5 de abril.</p>
+
+<p><span class="texto-negrita">SEGUNDO.</span> - Que interesando al arrendatario arrendar dicho inmueble para satisfacer su necesidad permanente de vivienda y previas conversaciones mantenidas al efecto, ambas partes llevan a cabo el presente CONTRATO DE ARRENDAMIENTO DE VIVIENDA, de conformidad con las siguientes:</p>
+
+<p class="texto-negrita">CLÁUSULAS</p>
+
+<p><span class="texto-negrita">PRIMERA. -LEGISLACIÓN APLICABLE.</span> El presente contrato se otorga conforme a lo establecido en la Ley 29/1994 de 24 de noviembre, de Arrendamientos Urbanos, modificada por la Ley 4/2013 de 5 de junio, Real Decreto-ley 7/2019, de 1 de marzo, de medidas urgentes en materia de vivienda y alquiler, y por lo pactado en el presente contrato, Ley 12/2023 de 24 de mayo por el Derecho a la Vivienda. Con carácter supletorio es de aplicación lo dispuesto al efecto por el Código Civil.</p>
+
+<p><span class="texto-negrita">SEGUNDA. -OBJETO.</span> Es objeto de este arrendamiento la finca urbana sita en <span class="etiqueta-inmueble-direccion texto-negrita">___________________________________________</span>, cuenta con una superficie construida de <span class="etiqueta-inmueble-sup-construida">______</span> m² y útil de <span class="etiqueta-inmueble-sup-util">_______</span> m². Fue adquirida por el arrendador mediante compraventa en escritura autorizada por el Notario de <span class="etiqueta-inmueble-notaria">______________________</span>, <span class="etiqueta-inmueble-notario-nombre">Don _____________________________</span>, en fecha <span class="etiqueta-inmueble-fecha-escritura">_________________</span>. Se encuentra libre de cargas y gravámenes, arrendatarios y ocupantes, y al corriente en el pago de impuestos, según declara el arrendador bajo su personal responsabilidad. Se encuentra inscrita en el Registro de la Propiedad Nº <span class="etiqueta-registro-numero">_____</span> de <span class="etiqueta-contrato-lugar-fecha">________</span>, Finca <span class="etiqueta-registro-finca">____________________</span> Con referencia catastral <span class="etiqueta-registro-catastro">______________</span>. El arrendatario declara conocer y aceptar el estado de la vivienda, recibiéndola en perfecto estado de conservación y con plena habitabilidad e idoneidad para servir al destino de vivienda permanente pactado en el presente contrato. Se adjuntan fotografías de la vivienda a los efectos de dejar constancia del excelente estado de la vivienda en el momento del arriendo.</p>
+
+<p><span class="texto-negrita">TERCERA. -DESTINO.</span> La finca objeto del presente contrato se destinará única y exclusivamente a vivienda habitual propia del arrendatario y su familia, excluyendo la posibilidad de instalar en ella o en parte de ella, comercio, industria, despacho profesional, oficina, hospedaje, o cualquier otra actividad distinta del fin para el cual se arrienda, sin expreso consentimiento de la parte arrendadora. Será causa de resolución contractual la variación de dicho fin sin autorización escrita de la propiedad.</p>
+
+<p><span class="texto-negrita">CUARTA. -DURACIÓN DEL CONTRATO.</span> El plazo de duración del presente contrato se establece por un período de <span class="etiqueta-vivienda-duracion texto-negrita">UN AÑO</span> a contar desde el día <span class="etiqueta-vivienda-inicio texto-negrita">___________</span>. Llegado el vencimiento del contrato, éste se prorrogará obligatoriamente por plazos anuales hasta que el arrendamiento alcance una duración de cinco años, salvo que el arrendatario manifieste al arrendador, con dos meses de antelación como mínimo a la fecha de terminación del contrato o de cualquiera de las prórrogas su voluntad de no renovarlo. A tenor de lo dispuesto en el artículo 11 de la Ley de Arrendamientos Urbanos, el arrendatario podrá desistir del contrato de arrendamiento siempre que lo comunique al arrendador con una antelación MÍNIMA de treinta (30) días. En el caso de desistimiento el arrendatario deberá al arrendador una cantidad equivalente a una mensualidad de renta en vigor por cada año de contrato que reste por cumplir. En el caso de que reste un periodo inferior dará lugar a la parte proporcional de indemnización. El arrendatario deberá abandonar la vivienda arrendada el día que finalice el contrato.</p>
+
+<p><span class="texto-negrita">QUINTA. -PRÓRROGA OBLIGATORIA y EXTRAORDINARIA.</span> Si llegada la fecha de vencimiento del contrato, o de cualquiera de sus prórrogas, una vez transcurridos como mínimo cinco años de duración de aquel, ninguna de las partes hubiese notificado a la otra, al menos con cuatro meses de antelación a aquella fecha en el caso del arrendador y al menos con dos meses de antelación en el caso del arrendatario, su voluntad de no renovarlo, el contrato se prorrogará obligatoriamente por plazos anuales hasta un máximo de tres años más, salvo que el arrendatario manifieste al arrendador con un mes de antelación a la fecha de terminación de cualquiera de las anualidades, su voluntad de no renovar el contrato. Las partes hacen renuncia expresa a la aplicación de la prórroga extraordinaria que fija el artículo 10.3 de la LAU, en el caso de que la vivienda alquilada que ha sido identificada se ubique en una zona con declaración vigente de zona de mercado residencial tensionado en los términos fijados por la Ley 12/2023 de 24 de mayo por el Derecho a la Vivienda. NECESIDAD DE LA VIVIENDA EN BASE AL ARTÍCULO 9.3. LAU. Se hace constar expresamente, de conformidad con el art. 9 en sus Apartados 3 de la Ley de Arrendamientos Urbanos, será igualmente causa de resolución del presente Contrato transcurrido el primer año, por lo que no procederá la prórroga obligatoria de los cinco años del contrato desde su entrada en vigor, si el arrendador tuviera la necesidad de ocupar la vivienda arrendada, a partir del primer año de celebración del contrato, para destinarla a vivienda permanente para sí o sus familiares en primer grado de consanguinidad o por adopción o para su cónyuge en los supuestos de sentencia firme de separación, divorcio o nulidad matrimonial, etcétera. Dicha comunicación deberá hacerse con al menos dos meses de antelación a la fecha en la que la vivienda se vaya a necesitar y el arrendatario estará obligado a entregar la finca arrendada en dicho plazo si las partes no llegan a un acuerdo distinto.</p>
+
+<p><span class="texto-negrita">SEXTA. - RENTA.</span> La renta anual pactada es de <span class="etiqueta-vivienda-renta-letra texto-negrita">____________</span> a pagar en plazos mensuales de <span class="etiqueta-vivienda-renta-numero texto-negrita">________</span> euros, por adelantado y dentro de los SIETE primeros días de cada mes. El abono de la renta se deberá verificar por el arrendador mediante transferencia bancaria a la cuenta del arrendador, cuyos datos son los siguientes: Titular: <span class="etiqueta-arrendador-nombre">____________________________________________</span> IBAN: <span class="etiqueta-vivienda-iban texto-negrita">__________________________________</span>. El resguardo de ingreso emitido por la entidad bancaria acreditará el pago de la renta, salvo prueba en contrario. El impago de una sola mensualidad de la renta en los plazos estipulados dará derecho al arrendador a resolver el contrato e iniciar el correspondiente procedimiento de desahucio por impago de rentas, siendo por cuenta del arrendatario los gastos que estas acciones originen.</p>
+
+<p><span class="texto-negrita">SÉPTIMA. -REVISIÓN DE LA RENTA.</span> Las partes pactan expresamente que la renta será revisada anualmente de acuerdo con la variación porcentual experimentada por el Índice de Referencia de Arrendamientos de Vivienda (IRAV) en un período de doce meses inmediatamente anteriores a la fecha de cada actualización, tomando como mes de referencia para la primera actualización el que corresponda al último índice que estuviera publicado en la fecha de celebración del contrato, y en las sucesivas el que corresponda al último aplicado. Publicado el índice correspondiente al mes de la actualización, el arrendador comunicará al arrendatario su voluntad de actualizar la renta conforme a lo establecido legalmente, bastando la notificación en el propio recibo con efectos del mes siguiente. Si por causa ajena al ARRENDADOR no se pudiera actualizar la renta en el mes que corresponda por no estar publicado el IRAV, se podrá aplicar el mismo con carácter retroactivo. Tampoco supondrá renuncia o prescripción la demora en la comunicación. La aplicación del IRAV nunca producirá un efecto negativo en la renta, siendo que la renta no será nunca inferior al año anterior. La base sobre la que se efectuará la citada revisión será la renta que se pague el mes inmediatamente anterior a la fecha de revisión. En el caso de que la legislación aplicable suprima el IRAV, será de aplicación al presente Contrato el índice que lo sustituya, y en defecto de éste, el IPC.</p>
+
+<p><span class="texto-negrita">OCTAVA. -OBLIGACIONES DE LA PARTE ARRENDATARIA.</span> La parte arrendataria en su calidad de inquilino de la vivienda arrendada asume expresamente las siguientes obligaciones: a) El pago de la renta, aumentos e incrementos legales, por adelantado dentro de los SIETE primeros días de cada mes, mediante domiciliación bancaria. b) A destinar el inmueble arrendado a la vivienda habitual y permanente del arrendatario y sus familiares, y a comunicar por escrito a la propiedad si entrare a convivir con el arrendatario una tercera persona ajena del ámbito familiar directo. c) Comunicar a la propiedad, en el plazo de veinticuatro horas, cualquier incidencia o desperfecto hallado en el interior de la vivienda. d) A observar en todo momento las disposiciones legales vigentes. e) A permitir el acceso en la vivienda a la propiedad y a los operarios o industriales mandados, con un preaviso de 24 horas, para la realización, inspección y comprobación de cualquier clase de obras o reparaciones que afecten al inmueble. f) A cumplir en todo momento las Normas Estatutarias Reglamentarias y los acuerdos de la Comunidad de Propietarios tenga establecidas o establezcan, en orden a la utilización de los servicios, elementos comunes y buen régimen de convivencia. g) A sufragar las pequeñas reparaciones que exija el desgaste por el uso ordinario de la vivienda, así como el deterioro de cuya reparación se trate, sea imputable al arrendatario. h) La parte arrendataria se obliga a suscribir una póliza de Responsabilidad Civil en calidad de inquilino de la vivienda. El capital mínimo deberá de ser de <span class="etiqueta-vivienda-seguro-rc">150.000</span> €. El incumplimiento de dicha obligación dará lugar a la resolución contractual.</p>
+
+<p><span class="texto-negrita">NOVENA. -OBLIGACIONES DE LA ARRENDADORA.</span> La parte arrendadora está obligada a: a) La devolución de la fianza a la parte arrendataria, según lo dispuesto en el pacto decimocuarto. b) A la reparación y/o sustitución de los servicios comunes que dejaren de funcionar. c) La parte arrendadora se obliga a contratar una póliza de seguros de daños de la vivienda en régimen de alquiler que incluya también el riesgo de incendios, en compañía de notoria solvencia y durante toda la vigencia del contrato.</p>
+
+<p><span class="texto-negrita">DÉCIMA. -GASTOS Y SUMINISTROS.</span> Serán de cuenta del ARRENDADOR los gastos correspondientes a la Comunidad de Propietarios que se giren sobre la vivienda arrendada, así como la cuota del Impuesto sobre Bienes Inmuebles. La parte arrendataria asumirá el gasto por consumo, instalación, reparación, contratación o ampliación de los servicios y suministros de agua, luz, gas y teléfono, así como cualquier otro susceptible de ser individualizado por medio de contador. A tal efecto, el arrendatario se compromete a dar de alta a su nombre tales servicios en las respectivas compañías suministradoras.</p>
+
+<p><span class="texto-negrita">UNDÉCIMA. -INTERESES DE DEMORA.</span> En caso de impago de rentas o de las cantidades pactadas en este contrato y cuyo abono son a cargo del arrendatario, se establece que dichos impagos, si se produjeran, devengarán un interés equivalente al interés legal del dinero incrementado en tres puntos porcentuales.</p>
+
+<p><span class="texto-negrita">DUODÉCIMA. -FIANZA.</span> El arrendatario entrega en este acto de conformidad con el artículo 36 de la L.A.U. una mensualidad de la renta en concepto de FIANZA por importe de <span class="etiqueta-vivienda-fianza texto-negrita">__________</span> EUROS que responderán del pago de alquiler, y de aquellas cantidades cuyo pago ha asumido el arrendatario en virtud del presente contrato, así como de la obligación de indemnizar al arrendador por los daños, desperfectos o menoscabos producidos en la finca arrendada, de los que el arrendatario deba responder. La fianza se devolverá al arrendatario previa comprobación del estado de la vivienda al finalizar el contrato y en ningún caso podrá aplicarse por el arrendatario a mensualidades de renta no abonadas cuya obligación de pago el mismo ha asumido. Las partes acuerdan que, a partir del quinto (o séptimo en su caso) año de duración del presente Contrato de arrendamiento, la fianza entregada en su día a la firma del presente deberá ser actualizada anualmente en el mismo porcentaje que se actualice la renta, debiendo poner el ARRENDATARIO a disposición del ARRENDADOR la diferencia, en el plazo de treinta (30) días desde su comunicación.</p>
+
+<p><span class="texto-negrita">DECIMOTERCERA. -GARANTÍAS ADICIONALES.</span> Las partes acuerdan no aportar garantías adicionales a la fianza legal mencionada en la estipulación anterior (EN CASO CONTRARIO ESTABLECER EN ESTA CLÁUSULA LA GARANTÍA ESTABLECIDA).</p>
+
+<p><span class="texto-negrita">DECIMOCUARTA. – CONSERVACIÓN, MEJORA, OBRAS Y HABITABILIDAD.</span> En todas estas materias, las partes se remiten a lo establecido en los artículos 21, 22, 23, 24 y 26 de la LAU. Queda prohibida la realización de cualquier obra sin previa autorización escrita de la propiedad, aunque no se altere la configuración de la vivienda ni la resistencia de los materiales en ella empleados. Las obras autorizadas quedarán en beneficio de la finca, sin derecho a reintegro alguno. Serán de cuenta del arrendatario las pequeñas reparaciones que se deban realizar para mantener la vivienda en estado de servir al uso al que se destina. El arrendatario declara encontrar el piso en estado de servir al destino pactado, haciéndose cargo de su conservación. Asume la obligación de entregar la vivienda al término del arriendo, en las mismas condiciones en las que se lo encontró; sin otros desperfectos que los propios del uso normal de la vivienda conforme al fin descrito en el presente contrato. Queda expresamente prohibido realizar obras en las fachadas exteriores del edificio, variar la pintura, o instalar elementos que modifiquen su estado y configuración arquitectónica. El incumplimiento por parte del arrendatario de las obligaciones derivadas en este pacto será causa de resolución del presente contrato.</p>
+
+<p><span class="texto-negrita">DECIMOQUINTA. -DERECHO DE ADQUISICIÓN PREFERENTE.</span> En caso de venta de la finca arrendada, las partes pactarán que el arrendatario no dispondrá del derecho de adquisición preferente, renunciando a sus derechos de tanteo y retracto de la forma y en las condiciones establecidas en el artículo 25 de la LAU. La enajenación de la vivienda extinguirá el arrendamiento, debiendo soportar el adquirente el arrendamiento durante el tiempo que reste para el transcurso del plazo de cinco años, o siete años si el arrendador fuere persona jurídica.</p>
+
+<p><span class="texto-negrita">DECIMOSEXTA. -CESIÓN Y SUBARRIENDO.</span> Será aplicable el régimen establecido en el artículo 8 de la LAU, quedando expresamente prohibida la cesión del contrato y/o el subarriendo parcial y/o total de la vivienda arrendada. El incumplimiento por parte del arrendatario de esta prohibición dará lugar a la resolución del presente contrato de forma inmediata.</p>
+
+<p><span class="texto-negrita">DECIMOCTAVA. -RESPONSABILIDAD.</span> Además de las causas que se mencionan en los artículos 27 y 28 de la LAU, conforme a lo establecido en el artículo 1.124 del Código Civil se establece expresamente que el arrendatario no podrá: ............................................................... .............................................................. pues ello llevará a la resolución del contrato, o a la exigencia de cumplir lo pactado, según decisión unilateral del arrendador. Además, se considerará incumplimiento todo aquello que el arrendatario haga en contra de lo dispuesto por los Estatutos o normas de funcionamiento interno de la Comunidad de Propietarios del edificio en donde se encuentra la vivienda arrendada. El arrendatario será responsable tanto de sus propios actos como de los que cometan los restantes ocupantes de la vivienda, aun siendo estos ocasionales, a efectos de la posible indemnización que por daños y perjuicios de los mismos pueda derivarse tanto a los efectos del párrafo anterior, como de una posible indemnización de daños y perjuicios.</p>
+
+<p><span class="texto-negrita">DECIMONOVENA. -AVALISTA.</span> Si hubiera fiador (avalista personal y solidario) se obliga a pagar o cumplir todas y cada una de las obligaciones del arrendatario en caso de incumplimiento por parte de éste, incluyendo los gastos judiciales establecidos en el artículo 1827 del Código Civil. Manifiesta el fiador que su obligación será vinculante tanto durante el periodo contractual como durante las sucesivas prórrogas que pudieran producirse, del tipo de sean e, incluso, para el caso de tácita reconducción. El fiador renuncia en este acto al beneficio de orden y al derecho de excusión, así como al derecho de división para el caso de que se tuviere que adicionar nuevo fiador al contrato.</p>
+
+<p><span class="texto-negrita">VIGÉSIMA. -NOTIFICACIONES.</span> Las comunicaciones entre las Partes en relación al Contrato se dirigirán:</p>
+
+<p>Por el arrendatario:<br>- Dirección Postal: <span class="etiqueta-arrendatario-direccion">_______________________________</span><br>- Mail: <span class="etiqueta-arrendatario-email">________________________________________</span><br>- Teléfono: <span class="etiqueta-arrendatario-telefono">_______________</span></p>
+<p>Por el arrendador:<br>- Dirección Postal: <span class="etiqueta-arrendador-direccion">_______________________________</span><br>- Mail: <span class="etiqueta-arrendador-email">________________________________________</span><br>- Teléfono: <span class="etiqueta-arrendador-telefono">_______________</span></p>
+<p>Por el avalista:<br>- Dirección Postal: <span class="etiqueta-avalista-direccion">_______________________________</span><br>- Mail: <span class="etiqueta-avalista-email">________________________________________</span><br>- Teléfono: <span class="etiqueta-avalista-telefono">_______________</span></p>
+
+<p>Ambas partes pactan como medio válido y preferente a efecto de notificaciones derivadas del presente Contrato de Arrendamiento, así como, para la remisión de cualesquiera Métodos Adecuados de Solución de Controversias (MASC) de los regulados en la Ley Orgánica 1/2025 de 2 de enero de medidas de eficiencia en el Sector Público de Justicia, o requerimientos derivados de incumplimientos, los correos electrónicos reseñados siempre que se garantice su autenticidad, y quede constancia de su envío y recepción así como de su fehaciencia. El cambio de cualesquiera de los datos consignados en la presente cláusula deberá ser comunicado de manera fehaciente a la contraparte en el plazo más breve posible, y siempre dentro de los quince (15) días desde su modificación. Las Partes acuerdan expresamente que el doble intento de notificación postal, la entrega a tercera persona distinta al destinatario mayor de 14 años en el domicilio arrendado o designado a efecto de notificaciones, el rehúse por el destinatario, o la imposibilidad de entrega por ausencia de actualización de datos, tendrá los mismos efectos que si la comunicación se hubiera entregado al propio destinatario, por lo que en estos casos, no será necesario realizar nuevo intento de invitación/comunicación/requerimiento, ni acudir a otro MASC distinto al intentado previamente.</p>
+
+<p><span class="texto-negrita">VIGÉSIMA PRIMERA. – PROTECCIÓN DE DATOS.</span> Las partes firmantes del presente contrato declaran conocer tanto el Reglamento (UE) 2016/279 de 27 de abril de 2016 (RGPD), relativo a la protección de las personas físicas en lo que respecta al tratamiento de datos personales y a la libre circulación de estos datos, así como la Ley Orgánica 3/2018, de 5 de diciembre, de protección de datos personales y garantía de los derechos digitales; y así como la normativa de desarrollo de ambas normas; y se obligan a su cumplimiento. Los datos facilitados por las partes en el presento contrato de arrendamiento serán utilizados únicamente con la finalidad de gestionar lo relativo a la relación contractual. La legitimación del uso de los datos se encuentra amparada en el art. 6.1.b) del RGPD. Se prohíbe con carácter general la cesión de datos, no obstante, las partes autorizan mutua y expresamente mediante la firma del presente contrato, la cesión de los datos personales designados a gestores inmobiliarios, así como abogados y procuradores, empresas suministradoras, administradores de fincas, y otros agentes intervinientes necesarios para que el contrato de arrendamiento despliegue todos sus efectos. Los datos serán conservados durante el tiempo necesario para cumplir con las finalidades para las que se recabaron y para determinar las posibles responsabilidades que pudieran derivar del contrato, así como los plazos legalmente establecidos. Cualesquiera de las Partes podrán ejercer su derecho a acceder, rectificar y suprimir los datos, así como otros derechos, para lo que habrán de dirigir comunicación en este sentido a la otra parte por medio fehaciente.</p>
+
+<p><span class="texto-negrita">VIGÉSIMA SEGUNDA. – LEGISLACIÓN APLICABLE.</span> El contrato se regirá de forma imperativa por lo dispuesto en los títulos I y IV de la Ley 29/1991 de 24 de Noviembre de arrendamientos urbanos, por los pactos, cláusulas y condiciones determinados por la voluntad de las partes en el marco de lo establecido en el título II de la LAU, y supletoriamente por el Código Civil, en este orden.</p>
+
+<p><span class="texto-negrita">VIGÉSIMA TERCERA. – JURISDICCIÓN.</span> Las partes se someten por imperativo de la Ley a los Juzgados y Tribunales del lugar donde radica la finca, con renuncia a cualquier otro fuero que pudiera corresponderle.</p>
+
+<p><span class="texto-negrita">VIGÉSIMA TERCERA. - ACEPTACIÓN.</span> Las partes aceptan el presente contrato, así como sus correspondientes anexos y sus efectos jurídicos y se comprometen a su cumplimiento de buena fe.</p>
+
+<div class="contenedor-firmas">
+  <div class="bloque-firma"><p class="texto-negrita">EL ARRENDADOR</p><br><br><br><br><p>Fdo.: <span class="etiqueta-arrendador-nombre">______________________</span></p></div>
+  <div class="bloque-firma"><p class="texto-negrita">EL ARRENDATARIO</p><br><br><br><br><p>Fdo.: <span class="etiqueta-arrendatario-nombre">______________________</span></p></div>
+  <div class="bloque-firma"><p class="texto-negrita">AVALISTA</p><br><br><br><br><p>Fdo.: <span class="etiqueta-avalista-nombre">______________________</span></p></div>
+</div>
+</div>
+
+<script>
+let tipoActual = 'temporada';
+
+const CAMPOS = [
+  { id: 'campo-arrendador-nombre',      clase: 'etiqueta-arrendador-nombre' },
+  { id: 'campo-arrendador-nombre',      clase: 'etiqueta-arrendador-nombre2' },
+  { id: 'campo-arrendador-dni',         clase: 'etiqueta-arrendador-dni' },
+  { id: 'campo-arrendador-dni',         clase: 'etiqueta-arrendador-dni2' },
+  { id: 'campo-arrendador-direccion',   clase: 'etiqueta-arrendador-direccion' },
+  { id: 'campo-arrendador-estado',      clase: 'etiqueta-arrendador-estado' },
+  { id: 'campo-arrendador-regimen',     clase: 'etiqueta-arrendador-regimen' },
+  { id: 'campo-arrendador-telefono',    clase: 'etiqueta-arrendador-telefono' },
+  { id: 'campo-arrendador-email',       clase: 'etiqueta-arrendador-email' },
+  { id: 'campo-arrendatario-nombre',    clase: 'etiqueta-arrendatario-nombre' },
+  { id: 'campo-arrendatario-nombre',    clase: 'etiqueta-arrendatario-nombre2' },
+  { id: 'campo-arrendatario-dni',       clase: 'etiqueta-arrendatario-dni' },
+  { id: 'campo-arrendatario-dni',       clase: 'etiqueta-arrendatario-dni2' },
+  { id: 'campo-arrendatario-direccion', clase: 'etiqueta-arrendatario-direccion' },
+  { id: 'campo-arrendatario-estado',    clase: 'etiqueta-arrendatario-estado' },
+  { id: 'campo-arrendatario-regimen',   clase: 'etiqueta-arrendatario-regimen' },
+  { id: 'campo-arrendatario-domicilio', clase: 'etiqueta-arrendatario-domicilio' },
+  { id: 'campo-arrendatario-telefono',  clase: 'etiqueta-arrendatario-telefono' },
+  { id: 'campo-arrendatario-email',     clase: 'etiqueta-arrendatario-email' },
+  // Avalista
+  { id: 'campo-avalista-nombre',        clase: 'etiqueta-avalista-nombre' },
+  { id: 'campo-avalista-nombre',        clase: 'etiqueta-avalista-nombre2' },
+  { id: 'campo-avalista-dni',           clase: 'etiqueta-avalista-dni' },
+  { id: 'campo-avalista-dni',           clase: 'etiqueta-avalista-dni2' },
+  { id: 'campo-avalista-direccion',     clase: 'etiqueta-avalista-direccion' },
+  { id: 'campo-avalista-estado',        clase: 'etiqueta-avalista-estado' },
+  { id: 'campo-avalista-regimen',       clase: 'etiqueta-avalista-regimen' },
+  { id: 'campo-avalista-telefono',      clase: 'etiqueta-avalista-telefono' },
+  { id: 'campo-avalista-telefono2',     clase: 'etiqueta-avalista-telefono' },
+  { id: 'campo-avalista-email',         clase: 'etiqueta-avalista-email' },
+  { id: 'campo-avalista-email2',        clase: 'etiqueta-avalista-email' },
+  // Inmueble
+  { id: 'campo-inmueble-direccion',     clase: 'etiqueta-inmueble-direccion' },
+  { id: 'campo-inmueble-sup-construida', clase: 'etiqueta-inmueble-sup-construida' },
+  { id: 'campo-inmueble-sup-util',      clase: 'etiqueta-inmueble-sup-util' },
+  { id: 'campo-inmueble-notaria',       clase: 'etiqueta-inmueble-notaria' },
+  { id: 'campo-inmueble-notario-nombre', clase: 'etiqueta-inmueble-notario-nombre' },
+  { id: 'campo-inmueble-fecha-escritura', clase: 'etiqueta-inmueble-fecha-escritura' },
+  { id: 'campo-registro-numero',        clase: 'etiqueta-registro-numero' },
+  { id: 'campo-registro-finca',         clase: 'etiqueta-registro-finca' },
+  { id: 'campo-registro-catastro',      clase: 'etiqueta-registro-catastro' },
+
+  // Contrato (temporada)
+  { id: 'campo-contrato-lugar-fecha',   clase: 'etiqueta-contrato-lugar-fecha' },
+  { id: 'campo-contrato-motivo',        clase: 'etiqueta-contrato-motivo' },
+  { id: 'campo-contrato-inicio',        clase: 'etiqueta-contrato-inicio' },
+  { id: 'campo-contrato-fin',           clase: 'etiqueta-contrato-fin' },
+  { id: 'campo-renta-letra',            clase: 'etiqueta-renta-letra' },
+  { id: 'campo-renta-numero',           clase: 'etiqueta-renta-numero' },
+  { id: 'campo-contrato-iban',          clase: 'etiqueta-contrato-iban' },
+  { id: 'campo-contrato-fianza',        clase: 'etiqueta-contrato-fianza' },
+  { id: 'campo-contrato-convivientes',  clase: 'etiqueta-contrato-convivientes' },
+  // Contrato (vivienda)
+  { id: 'campo-vivienda-inicio',        clase: 'etiqueta-vivienda-inicio' },
+  { id: 'campo-vivienda-duracion',      clase: 'etiqueta-vivienda-duracion' },
+  { id: 'campo-vivienda-renta-letra',   clase: 'etiqueta-vivienda-renta-letra' },
+  { id: 'campo-vivienda-renta-numero',  clase: 'etiqueta-vivienda-renta-numero' },
+  { id: 'campo-vivienda-iban',          clase: 'etiqueta-vivienda-iban' },
+  { id: 'campo-vivienda-fianza',        clase: 'etiqueta-vivienda-fianza' },
+  { id: 'campo-vivienda-seguro-rc',     clase: 'etiqueta-vivienda-seguro-rc' },
+];
+
+const VALORES_DEFECTO = {};
+
+function procesarCambios() {
+  for (const campo of CAMPOS) {
+    const input = document.getElementById(campo.id);
+    if (!input) continue;
+    const valor = input.value;
+    const nodos = document.querySelectorAll('.' + campo.clase);
+    for (let i = 0; i < nodos.length; i++) {
+      nodos[i].textContent = valor;
+    }
+  }
+  actualizarTextoSuministros();
+}
+
+function actualizarTextoSuministros() {
+  const select = document.getElementById('campo-contrato-suministros');
+  if (!select) return;
+  const opciones = {
+    opcion1: 'Opción 1. La PARTE ARRENDADORA informará a la PARTE ARRENDATARIA del importe de los mismos debiendo ser abonados junto con el recibo de la renta del mes siguiente al que hayan sido comunicados.',
+    opcion2: 'Opción 2. La PARTE ARRENDATARIA deberá facilitar su número de cuenta bancaria a efectos de domiciliar el pago de los mismos, para lo que la PARTE ARRENDADORA comunicará los datos de las empresas suministradoras.',
+    opcion3: 'Opción 3. Deberá la PARTE ARRENDATARIA, cambiar la titularidad de los suministros a su nombre durante la duración del Contrato de Arrendamiento.'
+  };
+  const nodos = document.querySelectorAll('.etiqueta-contrato-suministros');
+  for (let i = 0; i < nodos.length; i++) {
+    nodos[i].textContent = opciones[select.value] || select.options[select.selectedIndex].text;
+  }
+}
+
+function seleccionarTipo(tipo) {
+  if (tipo !== 'temporada' && tipo !== 'vivienda') {
+    mostrarNotificacion('Próximamente disponible', false);
+    return;
+  }
+  tipoActual = tipo;
+  document.querySelectorAll('.tipo-card').forEach(c => c.classList.remove('activo'));
+  document.querySelector(`.tipo-card[data-tipo="${tipo}"]`).classList.add('activo');
+  document.querySelectorAll('.nota-legal').forEach(n => n.classList.remove('visible'));
+  document.getElementById('nota-' + tipo)?.classList.add('visible');
+  document.querySelectorAll('.grupo-tipo').forEach(g => {
+    const mostrar = g.dataset.mostrar;
+    g.classList.toggle('visible', mostrar === tipo || mostrar === 'ambos');
+  });
+  procesarCambios();
+  mostrarNotificacion('Contrato de ' + (tipo === 'temporada' ? 'Temporada' : 'Vivienda Habitual') + ' seleccionado', true);
+}
+
+function ejecutarImpresion() {
+  const nombreArrendatario = document.getElementById('campo-arrendatario-nombre').value || 'contrato';
+  const tipoLabel = tipoActual === 'temporada' ? 'Temporada' : 'Vivienda';
+  document.title = 'Contrato_' + tipoLabel + '_' + nombreArrendatario;
+  const contratoEl = document.getElementById('contrato-' + tipoActual);
+  document.querySelectorAll('.vista-impresion').forEach(el => el.style.display = 'none');
+  if (contratoEl) contratoEl.style.display = 'block';
+  mostrarNotificacion('Generando PDF...', true);
+  setTimeout(() => {
+    window.print();
+    document.title = 'Editor de Contratos de Alquiler';
+    if (contratoEl) contratoEl.style.display = 'none';
+  }, 300);
+}
+
+function restablecerValores() {
+  for (const campo of CAMPOS) {
+    const input = document.getElementById(campo.id);
+    if (input) input.value = VALORES_DEFECTO[campo.id] || '';
+  }
+  document.getElementById('campo-contrato-forma-pago')?.selectedIndex = 0;
+  document.getElementById('campo-contrato-suministros')?.selectedIndex = 0;
+  procesarCambios();
+  mostrarNotificacion('Valores restablecidos correctamente', true);
+}
+
+function mostrarNotificacion(mensaje, exito) {
+  const notif = document.getElementById('notificacion');
+  notif.textContent = mensaje;
+  notif.className = 'notificacion mostrar ' + (exito ? 'exito' : '');
+  setTimeout(() => { notif.className = 'notificacion'; }, 2500);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  for (const campo of CAMPOS) {
+    const input = document.getElementById(campo.id);
+    if (input) {
+      VALORES_DEFECTO[campo.id] = input.value;
+      input.addEventListener('input', procesarCambios);
+    }
+  }
+  document.getElementById('campo-contrato-suministros')?.addEventListener('change', procesarCambios);
+  seleccionarTipo('temporada');
+});
+</script>
+</body>
+</html>

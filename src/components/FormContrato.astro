@@ -1,0 +1,184 @@
+<section class="seccion-formulario">
+  <h2>Datos del Contrato</h2>
+  <div class="grid-campos">
+    <div class="grupo-entrada ancho-completo">
+      <label for="campo-contrato-lugar-fecha">Lugar y Fecha de Firma</label>
+      <input type="text" id="campo-contrato-lugar-fecha" placeholder="Ej: En Madrid, a 1 de enero de 2025">
+    </div>
+
+    <div class="grupo-entrada ancho-completo grupo-tipo visible" data-mostrar="temporada">
+      <label for="campo-contrato-motivo">Motivo de la temporalidad</label>
+      <input type="text" id="campo-contrato-motivo" placeholder="Ej: trabajo, estudio, tratamiento médico...">
+    </div>
+    <div class="grupo-entrada grupo-tipo visible" data-mostrar="temporada">
+      <label for="campo-contrato-inicio">Fecha de Inicio</label>
+      <input type="text" id="campo-contrato-inicio" placeholder="Ej: 1 de enero de 2025">
+    </div>
+    <div class="grupo-entrada grupo-tipo visible" data-mostrar="temporada">
+      <label for="campo-contrato-fin">Fecha de Fin</label>
+      <input type="text" id="campo-contrato-fin" placeholder="Ej: 31 de enero de 2025">
+    </div>
+    <div class="grupo-entrada grupo-tipo visible" data-mostrar="temporada">
+      <label for="campo-renta-letra">Precio total (en letra)</label>
+      <input type="text" id="campo-renta-letra" placeholder="Ej: TRES MIL EUROS">
+    </div>
+    <div class="grupo-entrada grupo-tipo visible" data-mostrar="temporada">
+      <label for="campo-renta-numero">Precio total (número)</label>
+      <input type="text" id="campo-renta-numero" placeholder="Ej: 3.000,00">
+    </div>
+    <div class="grupo-entrada ancho-completo grupo-tipo visible" data-mostrar="temporada">
+      <label for="campo-contrato-forma-pago">Forma de pago</label>
+      <select id="campo-contrato-forma-pago">
+        <option value="unico">Pago único antes del inicio</option>
+        <option value="mensual">Mensualidades anticipadas</option>
+      </select>
+    </div>
+    <div class="grupo-entrada ancho-completo grupo-tipo visible" data-mostrar="temporada">
+      <label for="campo-contrato-iban">IBAN para domiciliación</label>
+      <input type="text" id="campo-contrato-iban" placeholder="Ej: ES00 0000 0000 0000 0000 0000">
+    </div>
+    <div class="grupo-entrada grupo-tipo visible" data-mostrar="temporada">
+      <label for="campo-contrato-fianza">Importe de la fianza</label>
+      <input type="text" id="campo-contrato-fianza" placeholder="Ej: 600,00">
+    </div>
+    <div class="grupo-entrada grupo-tipo visible" data-mostrar="temporada">
+      <label for="campo-contrato-suministros">Opción suministros</label>
+      <select id="campo-contrato-suministros">
+        <option value="opcion1">Opción 1: Pago junto con la renta</option>
+        <option value="opcion2">Opción 2: Domiciliación bancaria</option>
+        <option value="opcion3">Opción 3: Cambio de titularidad</option>
+      </select>
+    </div>
+    <div class="grupo-entrada ancho-completo grupo-tipo visible" data-mostrar="temporada">
+      <label for="campo-contrato-convivientes">Nombre de los convivientes</label>
+      <input type="text" id="campo-contrato-convivientes" placeholder="Ej: nombre de las personas con las que convive">
+    </div>
+
+    <div class="grupo-entrada grupo-tipo" data-mostrar="vivienda">
+      <label for="campo-vivienda-inicio">Fecha de inicio del contrato</label>
+      <input type="text" id="campo-vivienda-inicio" placeholder="Ej: 1 de enero de 2025">
+    </div>
+    <div class="grupo-entrada grupo-tipo" data-mostrar="vivienda">
+      <label for="campo-vivienda-duracion">Duración (años)</label>
+      <input type="text" id="campo-vivienda-duracion" placeholder="Ej: 1">
+    </div>
+    <div class="grupo-entrada grupo-tipo" data-mostrar="vivienda">
+      <label for="campo-vivienda-renta-letra">Renta mensual (en letra)</label>
+      <input type="text" id="campo-vivienda-renta-letra" placeholder="Ej: QUINIENTOS EUROS">
+    </div>
+    <div class="grupo-entrada grupo-tipo" data-mostrar="vivienda">
+      <label for="campo-vivienda-renta-numero">Renta mensual (número €)</label>
+      <input type="text" id="campo-vivienda-renta-numero" placeholder="Ej: 500,00">
+    </div>
+    <div class="grupo-entrada ancho-completo grupo-tipo" data-mostrar="vivienda">
+      <label for="campo-vivienda-iban">IBAN del arrendador (para domiciliación)</label>
+      <input type="text" id="campo-vivienda-iban" placeholder="Ej: ES00 0000 0000 0000 0000 0000">
+    </div>
+    <div class="grupo-entrada grupo-tipo" data-mostrar="vivienda">
+      <label for="campo-vivienda-fianza">Fianza (importe)</label>
+      <input type="text" id="campo-vivienda-fianza" placeholder="Ej: 500,00">
+    </div>
+    <div class="grupo-entrada grupo-tipo" data-mostrar="vivienda">
+      <label for="campo-vivienda-seguro-rc">Seguro RC (capital mínimo)</label>
+      <input type="text" id="campo-vivienda-seguro-rc" placeholder="Ej: 150.000">
+    </div>
+
+    <!-- Campos LOCAL -->
+    <div class="grupo-entrada grupo-tipo" data-mostrar="local">
+      <label for="campo-local-destino">Actividad del negocio</label>
+      <input type="text" id="campo-local-destino" placeholder="Ej: restaurante, tienda, oficina">
+    </div>
+    <div class="grupo-entrada grupo-tipo" data-mostrar="local">
+      <label for="campo-local-duracion">Duración del contrato</label>
+      <input type="text" id="campo-local-duracion" placeholder="Ej: CINCO AÑOS">
+    </div>
+    <div class="grupo-entrada grupo-tipo" data-mostrar="local">
+      <label for="campo-local-fecha-fin">Fecha de fin</label>
+      <input type="text" id="campo-local-fecha-fin" placeholder="Ej: 31 de diciembre de 2030">
+    </div>
+    <div class="grupo-entrada grupo-tipo" data-mostrar="local">
+      <label for="campo-local-renta-letra">Renta mensual (en letra)</label>
+      <input type="text" id="campo-local-renta-letra" placeholder="Ej: MIL EUROS">
+    </div>
+    <div class="grupo-entrada grupo-tipo" data-mostrar="local">
+      <label for="campo-local-renta-numero">Renta mensual (número €)</label>
+      <input type="text" id="campo-local-renta-numero" placeholder="Ej: 1.000,00">
+    </div>
+    <div class="grupo-entrada ancho-completo grupo-tipo" data-mostrar="local">
+      <label for="campo-local-iban">IBAN para domiciliación</label>
+      <input type="text" id="campo-local-iban" placeholder="Ej: ES00 0000 0000 0000 0000 0000">
+    </div>
+    <div class="grupo-entrada grupo-tipo" data-mostrar="local">
+      <label for="campo-local-gastos">Gastos de comunidad</label>
+      <select id="campo-local-gastos">
+        <option value="arrendador">A cargo del arrendador</option>
+        <option value="arrendatario">A cargo del arrendatario</option>
+      </select>
+    </div>
+    <div class="grupo-entrada grupo-tipo" data-mostrar="local">
+      <label for="campo-local-renuncia">Renuncia tanteo/retracto</label>
+      <select id="campo-local-renuncia">
+        <option value="sí">Sí renuncia</option>
+        <option value="no">No renuncia</option>
+      </select>
+    </div>
+    <div class="grupo-entrada grupo-tipo" data-mostrar="local">
+      <label for="campo-local-fianza">Importe de la fianza</label>
+      <input type="text" id="campo-local-fianza" placeholder="Ej: 2.000,00">
+    </div>
+
+    <!-- Campos GRANDES TENEDORES -->
+    <div class="grupo-entrada grupo-tipo" data-mostrar="grandes">
+      <label for="campo-grandes-dia">Día de firma</label>
+      <input type="text" id="campo-grandes-dia" placeholder="Ej: 15">
+    </div>
+    <div class="grupo-entrada grupo-tipo" data-mostrar="grandes">
+      <label for="campo-grandes-mes">Mes de firma</label>
+      <input type="text" id="campo-grandes-mes" placeholder="Ej: enero">
+    </div>
+    <div class="grupo-entrada grupo-tipo" data-mostrar="grandes">
+      <label for="campo-grandes-anyo">Año</label>
+      <input type="text" id="campo-grandes-anyo" placeholder="Ej: 2025">
+    </div>
+    <div class="grupo-entrada grupo-tipo" data-mostrar="grandes">
+      <label for="campo-grandes-inicio">Inicio del contrato (día)</label>
+      <input type="text" id="campo-grandes-inicio" placeholder="Ej: 1 de enero de 2025">
+    </div>
+    <div class="grupo-entrada grupo-tipo" data-mostrar="grandes">
+      <label for="campo-grandes-renta-anual">Renta anual (en letra)</label>
+      <input type="text" id="campo-grandes-renta-anual" placeholder="Ej: SEIS MIL EUROS">
+    </div>
+    <div class="grupo-entrada grupo-tipo" data-mostrar="grandes">
+      <label for="campo-grandes-renta-mensual">Renta mensual (número €)</label>
+      <input type="text" id="campo-grandes-renta-mensual" placeholder="Ej: 500,00">
+    </div>
+    <div class="grupo-entrada grupo-tipo" data-mostrar="grandes">
+      <label for="campo-grandes-titular">Titular de la cuenta</label>
+      <input type="text" id="campo-grandes-titular" placeholder="Ej: Nombre del arrendador">
+    </div>
+    <div class="grupo-entrada grupo-tipo" data-mostrar="grandes">
+      <label for="campo-grandes-iban">IBAN</label>
+      <input type="text" id="campo-grandes-iban" placeholder="Ej: ES00">
+    </div>
+    <div class="grupo-entrada grupo-tipo" data-mostrar="grandes">
+      <label for="campo-grandes-entidad">Entidad</label>
+      <input type="text" id="campo-grandes-entidad" placeholder="Ej: 0123">
+    </div>
+    <div class="grupo-entrada grupo-tipo" data-mostrar="grandes">
+      <label for="campo-grandes-oficina">Oficina</label>
+      <input type="text" id="campo-grandes-oficina" placeholder="Ej: 4567">
+    </div>
+    <div class="grupo-entrada grupo-tipo" data-mostrar="grandes">
+      <label for="campo-grandes-dc">DC</label>
+      <input type="text" id="campo-grandes-dc" placeholder="Ej: 89">
+    </div>
+    <div class="grupo-entrada grupo-tipo" data-mostrar="grandes">
+      <label for="campo-grandes-cuenta">Cuenta corriente</label>
+      <input type="text" id="campo-grandes-cuenta" placeholder="Ej: 0123456789">
+    </div>
+    <div class="grupo-entrada grupo-tipo" data-mostrar="grandes">
+      <label for="campo-grandes-fianza">Fianza (importe)</label>
+      <input type="text" id="campo-grandes-fianza" placeholder="Ej: 500,00">
+    </div>
+  </div>
+</section>
