@@ -28,7 +28,7 @@ Una aplicación web interactiva para generar contratos de alquiler personalizado
 
 ```bash
 # Clonar el repositorio
-git clone https://github.com/javigt10/ContratoAlquiler.git
+git clone https://github.com/JaviGT97/ContratoAlquiler.git
 cd ContratoAlquiler
 
 # Instalar dependencias
@@ -48,7 +48,7 @@ npm run preview
 
 El proyecto se despliega automáticamente en **GitHub Pages** mediante GitHub Actions al hacer push a la rama `main`.
 
-Puedes ver la versión en vivo aquí: [https://javigt10.github.io/ContratoAlquiler](https://javigt10.github.io/ContratoAlquiler)
+Puedes ver la versión en vivo aquí: [https://javigt97.github.io/ContratoAlquiler](https://javigt97.github.io/ContratoAlquiler)
 
 ## 📁 Estructura
 
